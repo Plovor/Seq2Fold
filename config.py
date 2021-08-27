@@ -1,11 +1,16 @@
 class Config:
+    # data
+    encoding = 'embedding'
+    max_length = 900
+
     # model
-    vocab_size = 21
-    d_model = 21
-    heads = 1
-    n_layers = 1
+    src_vocab = 24  # 21 + 3
+    # emb_dim = 21
+    d_model = 128  # hidden layer
+    trg_vocab = 245
+    heads = 8
+    n_layers = 6
     load_weights = None
-    device = 0
     dropout = 0.5
 
     # optimizer

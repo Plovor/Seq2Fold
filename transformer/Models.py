@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from Layers import EncoderLayer, DecoderLayer
-from Embed import Embedder, PositionalEncoder
-from Sublayers import Norm
+from transformer.Layers import EncoderLayer, DecoderLayer
+from transformer.Embed import Embedder, PositionalEncoder
+from transformer.Sublayers import Norm
 import copy
 
 
@@ -59,13 +59,23 @@ class Transformer(nn.Module):
         return output
 
 
+class SeqEncoder(nn.Module):
+    def __init__(self, src_vocab, trg_vocab, d_model, N, heads, dropout):
+        super().__init__()
+        self.encoder = Encoder(src_vocab, d_model, N, heads, dropout)
+        self.out = nn.Linear(d_model, trg_vocab)
+
+    def forward(self, src, src_mask=None):
+        e_outputs = self.encoder(src, src_mask)
+        output = self.out(e_outputs)
+        return output
+
+
 def get_model(opt, src_vocab, trg_vocab):
 
-    assert opt.d_model % opt.heads == 0
     assert opt.dropout < 1
 
-    model = Transformer(src_vocab, trg_vocab, opt.d_model,
-                        opt.n_layers, opt.heads, opt.dropout)
+    model = SeqEncoder(src_vocab, trg_vocab, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
 
     if opt.load_weights is not None:
         print("loading pretrained weights...")
@@ -74,8 +84,5 @@ def get_model(opt, src_vocab, trg_vocab):
         for p in model.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
-
-    if opt.device == 0:
-        model = model.cuda()
 
     return model

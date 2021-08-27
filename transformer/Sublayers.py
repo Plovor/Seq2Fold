@@ -44,15 +44,15 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
 
         self.d_model = d_model
-        self.d_k = d_model // heads
+        self.d_k = max(d_model // heads, 1)
         self.h = heads
 
-        self.q_linear = nn.Linear(d_model, d_model)
-        self.v_linear = nn.Linear(d_model, d_model)
-        self.k_linear = nn.Linear(d_model, d_model)
+        self.q_linear = nn.Linear(d_model, self.h * self.d_k)
+        self.v_linear = nn.Linear(d_model, self.h * self.d_k)
+        self.k_linear = nn.Linear(d_model, self.h * self.d_k)
 
         self.dropout = nn.Dropout(dropout)
-        self.out = nn.Linear(d_model, d_model)
+        self.out = nn.Linear(self.h * self.d_k, d_model)
 
     def forward(self, q, k, v, mask=None):
 

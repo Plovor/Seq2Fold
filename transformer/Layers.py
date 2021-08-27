@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from Sublayers import FeedForward, MultiHeadAttention, Norm
+from transformer.Sublayers import FeedForward, MultiHeadAttention, Norm
 
 
 class EncoderLayer(nn.Module):
