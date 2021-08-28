@@ -1,0 +1,4 @@
+.idea/
+data/astral_*
+__pycache__/
+model/*
