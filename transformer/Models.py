@@ -72,11 +72,11 @@ class SeqEncoder(nn.Module):
         return output
 
 
-def get_model(opt, src_vocab, trg_vocab):
+def get_model(opt):
 
     assert opt.dropout < 1
 
-    model = SeqEncoder(src_vocab, trg_vocab, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
+    model = SeqEncoder(opt.src_vocab, opt.trg_vocab, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
 
     if opt.load_weights is not None:
         print("loading pretrained weights...")

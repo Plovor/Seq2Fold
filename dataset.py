@@ -54,6 +54,8 @@ class SeqDataset(Dataset):
 
     def _encode_seq(self, input_seq: str):
         coding = None
+        if len(input_seq) > 800:
+            print('y')
         if self.encoding == 'embedding':
             coding = np.zeros([self.max_length])  # [PAD] = 0
             coding[0] = 1  # [CLS] = 1
@@ -93,7 +95,7 @@ class SeqDataset(Dataset):
             # return name, self._encode_seq(seq), self._encode_label(label)
             return name, self._encode_seq(seq), label
         else:
-            return name, seq
+            return name, self._encode_seq(seq)
 
     def __len__(self):
         return self.length
@@ -102,8 +104,7 @@ class SeqDataset(Dataset):
 if __name__ == '__main__':
     from torch.utils.data import DataLoader
     from config import opt
-    data = SeqDataset(opt, train=True)
+    data = SeqDataset(opt, train=False)
     dataloader = DataLoader(dataset=data, batch_size=1, shuffle=False, num_workers=1)
-    for n, s, l in dataloader:
-        print(n, s, l)
-        break
+    for n, s in dataloader:
+        pass

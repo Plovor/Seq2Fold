@@ -3,6 +3,8 @@ import torch.nn as nn
 import math
 from torch.autograd import Variable
 
+from config import opt
+
 
 class Embedder(nn.Module):
     def __init__(self, vocab_size, d_model):
@@ -15,7 +17,7 @@ class Embedder(nn.Module):
 
 
 class PositionalEncoder(nn.Module):
-    def __init__(self, d_model, max_seq_len=900, dropout=0.1):
+    def __init__(self, d_model, max_seq_len=opt.max_length, dropout=0.1):
         super().__init__()
         self.d_model = d_model
         self.dropout = nn.Dropout(dropout)
