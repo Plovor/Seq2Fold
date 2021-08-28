@@ -79,10 +79,10 @@ class SeqDataset(Dataset):
 
         return coding
 
-    def _encode_label(self, input_label: int):
-        output_label = [0 for _ in range(self.class_num)]
-        output_label[input_label] = 1
-        return np.array(output_label, dtype=int)
+    # def _encode_label(self, input_label: int):
+    #     output_label = [0 for _ in range(self.class_num)]
+    #     output_label[input_label] = 1
+    #     return np.array(output_label, dtype=int)
 
     def __getitem__(self, item):
         name = list(self.data.keys())[item]
@@ -90,7 +90,8 @@ class SeqDataset(Dataset):
         if self.train:
             label = self.data[name]['label']
             label = int(np.where(self.label_map == label)[0])
-            return name, self._encode_seq(seq), self._encode_label(label)
+            # return name, self._encode_seq(seq), self._encode_label(label)
+            return name, self._encode_seq(seq), label
         else:
             return name, seq
 

@@ -63,10 +63,11 @@ class SeqEncoder(nn.Module):
     def __init__(self, src_vocab, trg_vocab, d_model, N, heads, dropout):
         super().__init__()
         self.encoder = Encoder(src_vocab, d_model, N, heads, dropout)
-        self.out = nn.Linear(d_model, trg_vocab)
+        self.out = nn.Linear(d_model, 245)
 
     def forward(self, src, src_mask=None):
         e_outputs = self.encoder(src, src_mask)
+        e_outputs = e_outputs[:, 0, :]
         output = self.out(e_outputs)
         return output
 
