@@ -1,24 +1,31 @@
 class Config:
-    # data
-    encoding = 'embedding'
-    max_length = 900
 
     # model
-    src_vocab = 24  # 21 + 3
-    # emb_dim = 21
+    src_vocab = 24  # embedding layer, 21 + 3
+    class_num = 245  # class num
     d_model = 128  # hidden layer
-    trg_vocab = 245
-    heads = 8
-    n_layers = 6
+    n_layers = 6  # hidden layer
+    heads = 8  # multi-head attention
     load_weights = None
-    dropout = 0.5
+    dropout = 0.1
+
+    # encoding: blosum
+    blosum = False
+    blosum_path = 'BLOSUM62.txt'
+
+    # encoding: acc
+    acc = False
+
+    # data
+    max_length = 800
+    alphabet = 'ARNDCQEGHILKMFPSTWYV*'
 
     # optimizer
     lr = 1e-4
 
     # training
     batch_size = 8
-    epoch = 10
+    epoch = 100
 
 
 opt = Config()

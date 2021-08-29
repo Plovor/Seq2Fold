@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import Dataset
-train_path = 'C:\\Users\\zhangpy\\Desktop\\seq2fold\\data\\astral_train.fa'
-test_path = 'C:\\Users\\zhangpy\\Desktop\\seq2fold\\data\\astral_test.fa'
+train_path = 'data/astral_train.fa'
+test_path = 'data/astral_test.fa'
 
 
 def fasta2dict(inf, label_mode=True):
@@ -36,13 +36,9 @@ def load_blosum(path):
 
 class SeqDataset(Dataset):
     def __init__(self, opt, train=True):
-
-        assert opt.encoding == 'embedding' or opt.encoding == 'blosum'
-
-        self.encoding = opt.encoding
         self.max_length = opt.max_length
         self.train = train
-        self.alphabet = {aa: i for i, aa in enumerate('ARNDCQEGHILKMFPSTWYV*')}  # XOUBZ -> *
+        self.alphabet = {aa: i for i, aa in enumerate(opt.alphabet)}  # XOUBZ -> *
         self.blosum = load_blosum('BLOSUM62.txt')
         self.data_path = train_path if self.train else test_path
         self.label_map = np.loadtxt('label.txt', dtype=str)
@@ -53,29 +49,17 @@ class SeqDataset(Dataset):
         print(f"load {'train' if self.train else 'test'} dataset size: {self.length}")
 
     def _encode_seq(self, input_seq: str):
-        coding = None
-        if self.encoding == 'embedding':
-            coding = np.zeros([self.max_length])  # [PAD] = 0
-            coding[0] = 1  # [CLS] = 1
-            coding[-1] = 2  # [SEP] = 2
-            input_seq = input_seq[:self.max_length - 2]
-            for i, aa in enumerate(input_seq):
-                if aa in self.alphabet.keys():
-                    coding[i + 1] = self.alphabet[aa] + 3
-                elif chr(ord(aa) - 32) in self.alphabet.keys():
-                    coding[i + 1] = self.alphabet[chr(ord(aa) - 32)] + 3
-                else:
-                    coding[i + 1] = self.alphabet['*'] + 3
-
-        elif self.encoding == 'blosum':
-            coding = np.zeros([len(input_seq), self.blosum['A'].shape[0]])
-            for i, aa in enumerate(input_seq):
-                if aa in self.blosum.keys():
-                    coding[i, :] = self.blosum[aa]
-                elif chr(ord(aa) - 32) in self.blosum.keys():
-                    coding[i, :] = self.blosum[chr(ord(aa) - 32)]
-                else:
-                    coding[i, :] = self.blosum['*']
+        coding = np.zeros([self.max_length])  # [PAD] = 0
+        coding[0] = 1  # [CLS] = 1
+        coding[-1] = 2  # [SEP] = 2
+        input_seq = input_seq[:self.max_length - 2]
+        for i, aa in enumerate(input_seq):
+            if aa in self.alphabet.keys():
+                coding[i + 1] = self.alphabet[aa] + 3
+            elif chr(ord(aa) - 32) in self.alphabet.keys():
+                coding[i + 1] = self.alphabet[chr(ord(aa) - 32)] + 3
+            else:
+                coding[i + 1] = self.alphabet['*'] + 3
 
         return coding
 
@@ -93,7 +77,7 @@ class SeqDataset(Dataset):
             # return name, self._encode_seq(seq), self._encode_label(label)
             return name, self._encode_seq(seq), label
         else:
-            return name, seq
+            return name, self._encode_seq(seq)
 
     def __len__(self):
         return self.length
@@ -102,8 +86,8 @@ class SeqDataset(Dataset):
 if __name__ == '__main__':
     from torch.utils.data import DataLoader
     from config import opt
-    data = SeqDataset(opt, train=True)
-    dataloader = DataLoader(dataset=data, batch_size=1, shuffle=False, num_workers=1)
-    for n, s, l in dataloader:
-        print(n, s, l)
+    data = SeqDataset(opt, train=False)
+    dataloader = DataLoader(dataset=data, batch_size=2, shuffle=False, num_workers=1)
+    for n, s in dataloader:
+        print(s.shape)
         break

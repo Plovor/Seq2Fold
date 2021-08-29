@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from transformer.Layers import EncoderLayer, DecoderLayer
-from transformer.Embed import Embedder, PositionalEncoder
+from transformer.Embed import Embedder, PositionalEncoder, BlosumEncoder
 from transformer.Sublayers import Norm
 import copy
 
@@ -11,17 +11,21 @@ def get_clones(module, N):
 
 
 class Encoder(nn.Module):
-    def __init__(self, vocab_size, d_model, N, heads, dropout):
+    def __init__(self, vocab_size, d_model, blosum, N, heads, dropout):
         super().__init__()
         self.N = N
-        self.embed = Embedder(vocab_size, d_model)
-        self.pe = PositionalEncoder(d_model, dropout=dropout)
+        d_emb = d_model - 24 if blosum else d_model
+        self.embed = Embedder(vocab_size, d_emb)
+        self.pe = PositionalEncoder(d_emb)
+        self.be = BlosumEncoder() if blosum else None
         self.layers = get_clones(EncoderLayer(d_model, heads, dropout), N)
         self.norm = Norm(d_model)
 
     def forward(self, src, mask):
         x = self.embed(src)
         x = self.pe(x)
+        if self.be is not None:
+            x = self.be(src, x)
         for i in range(self.N):
             x = self.layers[i](x, mask)
         return self.norm(x)
@@ -60,10 +64,10 @@ class Transformer(nn.Module):
 
 
 class SeqEncoder(nn.Module):
-    def __init__(self, src_vocab, trg_vocab, d_model, N, heads, dropout):
+    def __init__(self, src_vocab, class_num, d_model, blosum, N, heads, dropout):
         super().__init__()
-        self.encoder = Encoder(src_vocab, d_model, N, heads, dropout)
-        self.out = nn.Linear(d_model, 245)
+        self.encoder = Encoder(src_vocab, d_model, blosum, N, heads, dropout)
+        self.out = nn.Linear(d_model, class_num)
 
     def forward(self, src, src_mask=None):
         e_outputs = self.encoder(src, src_mask)
@@ -72,11 +76,12 @@ class SeqEncoder(nn.Module):
         return output
 
 
-def get_model(opt, src_vocab, trg_vocab):
+def get_model(opt):
 
     assert opt.dropout < 1
 
-    model = SeqEncoder(src_vocab, trg_vocab, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
+    model = SeqEncoder(opt.src_vocab, opt.class_num, opt.d_model,
+                       opt.blosum, opt.n_layers, opt.heads, opt.dropout)
 
     if opt.load_weights is not None:
         print("loading pretrained weights...")
